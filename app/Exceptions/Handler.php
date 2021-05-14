@@ -44,8 +44,9 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-    //        added to get more verbose error per TDD tutorial, skm
-//        throw $exception;
+    // add to get more verbose error per TDD tutorial
+    // throw $exception;
+    // replaced with TestCase->disableExceptionHandling()
 
         return parent::render($request, $exception);
     }

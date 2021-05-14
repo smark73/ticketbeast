@@ -5,6 +5,7 @@ use App\Concert;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\TestResponse;
 
 class PurchaseTicketsTest extends TestCase {
 
@@ -14,7 +15,6 @@ class PurchaseTicketsTest extends TestCase {
     function customer_can_purchase_concert_tickets() {
 
         $paymentGateway = new FakePaymentGateway;
-
         $this->app->instance(\App\Billing\PaymentGateway::class, $paymentGateway);
 
         //arrange
@@ -45,5 +45,23 @@ class PurchaseTicketsTest extends TestCase {
 
     }
 
+    /** @test */
+    function email_is_required_to_purchase_tickets() {
+
+        $paymentGateway = new FakePaymentGateway;
+        $this->app->instance(\App\Billing\PaymentGateway::class, $paymentGateway);
+
+        $concert = factory(Concert::class)->create([]);
+
+        $response = $this->json('POST', "/concerts/{$concert->id}/orders", [
+            'ticket_quantity' => 3,
+            'payment_token' => $paymentGateway->getValidTestToken(),
+        ]);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+
+    }
 
 }
