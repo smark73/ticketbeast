@@ -1,7 +1,7 @@
 <?php
 
-//use Symfony\Component\Debug\ExceptionHandler;
-//use Illuminate\Contracts\Debug\ExceptionHandler;
+use App\Exceptions\Handler;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 
 abstract class TestCase extends Illuminate\Foundation\Testing\TestCase
 {

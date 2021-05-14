@@ -29,14 +29,14 @@ class PurchaseTicketsTest extends TestCase {
     }
 
     /** @test */
-    function customer_can_purchase_concert_tickets() {
+    function customer_can_purchase_published_concert_tickets() {
 
 //        $paymentGateway = new FakePaymentGateway;
 //        $this->app->instance(\App\Billing\PaymentGateway::class, $paymentGateway);
 
         //arrange
         // create a concert
-        $concert = factory(Concert::class)->create([
+        $concert = factory(Concert::class)->states('published')->create([
             'ticket_price' => 3250,
         ]);
 
@@ -68,12 +68,51 @@ class PurchaseTicketsTest extends TestCase {
     }
 
     /** @test */
+    function cannot_purchase_tickets_to_unpublished_concert() {
+
+//        $this->disableExceptionHandling();
+
+        $concert = factory(Concert::class)->states('unpublished')->create([]);
+
+        $response = $this->orderTickets($concert, [
+            'email' => 'johndoe@example.com',
+            'ticket_quantity' => 3,
+            'payment_token' => $this->paymentGateway->getValidTestToken(),
+        ]);
+
+        $response->assertStatus(404);
+        $this->assertEquals(0, $concert->orders()->count());
+        $this->assertEquals(0, $this->paymentGateway->totalCharges());
+
+    }
+
+    /** @test */
+    function an_order_is_not_created_if_payment_fails() {
+
+        $this->disableExceptionHandling();
+
+        $concert = factory(Concert::class)->states('published')->create([]);
+
+        $response = $this->orderTickets($concert, [
+            'email' => 'johndoe@example.com',
+            'ticket_quantity' => 3,
+            'payment_token' => 'invalid-payment-token',
+        ]);
+
+        $response->assertStatus(422);
+        $order = $concert->orders()->where('email', 'johndoe@example.com')->first();
+        $this->assertNull($order);
+
+    }
+
+
+    /** @test */
     function email_is_required_to_purchase_tickets() {
 
 //        $paymentGateway = new FakePaymentGateway;
 //        $this->app->instance(\App\Billing\PaymentGateway::class, $paymentGateway);
 
-        $concert = factory(Concert::class)->create([]);
+        $concert = factory(Concert::class)->states('published')->create([]);
 
 //        $response = $this->json('POST', "/concerts/{$concert->id}/orders", [
 //            'ticket_quantity' => 3,
@@ -96,7 +135,7 @@ class PurchaseTicketsTest extends TestCase {
     /** @test */
     function valid_email_is_required_to_purchase_tickets() {
 
-        $concert = factory(Concert::class)->create([]);
+        $concert = factory(Concert::class)->states('published')->create([]);
 
 //        $response = $this->json('POST', "/concerts/{$concert->id}/orders", [
 //            'email' => 'not-a-valid-email',
@@ -121,7 +160,7 @@ class PurchaseTicketsTest extends TestCase {
     /** @test */
     function ticket_quantity_is_required_to_purchase_tickets() {
 
-        $concert = factory(Concert::class)->create([]);
+        $concert = factory(Concert::class)->states('published')->create([]);
 
 //        $response = $this->json('POST', "/concerts/{$concert->id}/orders", [
 //            'email' => 'johndoe@example.com',
@@ -144,7 +183,7 @@ class PurchaseTicketsTest extends TestCase {
     /** @test */
     function ticket_quantity_must_be_at_least_1_to_purchase_tickets() {
 
-        $concert = factory(Concert::class)->create([]);
+        $concert = factory(Concert::class)->states('published')->create([]);
 
 //        $response = $this->json('POST', "/concerts/{$concert->id}/orders", [
 //            'email' => 'johndoe@example.com',
@@ -169,7 +208,7 @@ class PurchaseTicketsTest extends TestCase {
     /** @test */
     function payment_token_is_required() {
 
-        $concert = factory(Concert::class)->create([]);
+        $concert = factory(Concert::class)->states('published')->create([]);
 
 //        $response = $this->json('POST', "/concerts/{$concert->id}/orders", [
 //            'email' => 'johndoe@example.com',
