@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Billing\PaymentFailedException;
 use App\Billing\PaymentGateway;
 use App\Concert;
+use App\Exceptions\NotEnoughTicketsException;
 use Illuminate\Http\Request;
 
 class ConcertOrdersController extends Controller {
@@ -16,7 +17,6 @@ class ConcertOrdersController extends Controller {
     }
 
     public function store($concertId) {
-
         $concert = Concert::published()->findOrFail($concertId);
 
         $this->validate(request(), [
@@ -26,40 +26,16 @@ class ConcertOrdersController extends Controller {
         ]);
 
         try {
-
-//            $concert = Concert::published()->findOrFail($concertId);
-
-            // Charge customer
-            // 1
-            // $ticketQuantity = request('ticket_quantity');
-            // $amount = $ticketQuantity * $concert->ticket_price;
-            // $token = request('payment_token');
-            // $this->paymentGateway->charge($amount, $token);
-
-            // 2
-            $this->paymentGateway->charge(request('ticket_quantity') * $concert->ticket_price, request('payment_token'));
-
-            // Create order
-
-            // 1
-            // $order = $concert->orders()->create(['email'=>'johndoe@example.com']);
-            //
-            // foreach (range(1, request('ticket_quantity')) as $i){
-            //     $order->tickets()->create([]);
-            // }
-
-            // 2
-            // $order = $concert->orderTickets($email, $ticketQuantity);
-
-            // 3
             $order = $concert->orderTickets(request('email'), request('ticket_quantity'));
-
+            $this->paymentGateway->charge(request('ticket_quantity') * $concert->ticket_price, request('payment_token'));
             return response()->json([], 201);
 
         } catch (PaymentFailedException $e) {
-
+            $order->cancel();
             return response()->json([], 422);
 
+        } catch (NotEnoughTicketsException $e) {
+            return response()->json([],422);
         }
 
     }

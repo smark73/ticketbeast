@@ -14,7 +14,6 @@ class ViewConcertListingTest extends TestCase {
      * @test
      */
     public function user_can_view_a_published_concert_listing() {
-
         $concert = factory(Concert::class)->states('published')->create([
             'title' => 'Type O Negative',
             'subtitle' => 'with Pantera',
@@ -31,7 +30,6 @@ class ViewConcertListingTest extends TestCase {
         $response = $this->get('/concerts/' . $concert->id);
 
         $response->assertStatus(200);
-
         $response->assertSee('Type O Negative');
         $response->assertSee('with Pantera');
         $response->assertSee('October 31, 2021');
@@ -48,12 +46,10 @@ class ViewConcertListingTest extends TestCase {
 
     /** @test */
     public function user_cannot_view_unpublished_concert_listings() {
-
         $concert = factory(Concert::class)->states('unpublished')->create();
 
         $response = $this->get('/concerts/' . $concert->id);
 
         $response->assertStatus(404);
-
     }
 }
