@@ -58,6 +58,10 @@ class Concert extends Model {
         return $this->orders()->where('email', $email)->count() > 0;
     }
 
+    public function ordersFor($email) {
+        return $this->orders()->where('email', $email)->get();
+    }
+
     public function addTickets($quantity) {
         foreach (range(1, $quantity) as $i) {
             $this->tickets()->create([]);

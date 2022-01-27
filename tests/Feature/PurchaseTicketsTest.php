@@ -52,10 +52,8 @@ class PurchaseTicketsTest extends TestCase {
         // make sure cust was charged
         $this->assertEquals(9750, $this->paymentGateway->totalCharges());
         // make sure order exists
-//        $order = $concert->orders()->where('email', 'johndoe@example.com')->first();
-//        $this->assertNotNull($order);
         $this->assertTrue($concert->hasOrderFor('johndoe@example.com'));
-        $this->assertEquals(3, $order->tickets()->count());
+        $this->assertEquals(3, $concert->ordersFor('johndoe@example.com')->first()->ticketQuantity());
     }
 
     /** @test */
@@ -69,7 +67,7 @@ class PurchaseTicketsTest extends TestCase {
         ]);
 
         $response->assertStatus(404);
-        $this->assertEquals(0, $concert->orders()->count());
+        $this->assertFalse($concert->hasOrderFor('johndoe@example.com'));
         $this->assertEquals(0, $this->paymentGateway->totalCharges());
     }
 
@@ -84,8 +82,7 @@ class PurchaseTicketsTest extends TestCase {
         ]);
 
         $response->assertStatus(422);
-        $order = $concert->orders()->where('email', 'johndoe@example.com')->first();
-        $this->assertNull($order);
+        $this->assertFalse($concert->hasOrderFor('johndoe@example.com'));
         $this->assertEquals(0, $this->paymentGateway->totalCharges());
         $this->assertEquals(50, $concert->ticketsRemaining());
     }
@@ -93,7 +90,7 @@ class PurchaseTicketsTest extends TestCase {
 
     /** @test */
     public function an_order_is_not_created_if_payment_fails() {
-        $this->disableExceptionHandling();
+//        $this->disableExceptionHandling();
 
         $concert = factory(Concert::class)->states('published')->create()->addTickets(3);
 
@@ -104,8 +101,7 @@ class PurchaseTicketsTest extends TestCase {
         ]);
 
         $response->assertStatus(422);
-        $order = $concert->orders()->where('email', 'johndoe@example.com')->first();
-        $this->assertNull($order);
+        $this->assertFalse($concert->hasOrderFor('johndoe@example.com'));
     }
 
 

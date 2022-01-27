@@ -1,6 +1,8 @@
+var gulp     = require('gulp');
 const elixir = require('laravel-elixir');
 
 require('laravel-elixir-vue-2');
+
 
 /*
  |--------------------------------------------------------------------------
@@ -13,7 +15,22 @@ require('laravel-elixir-vue-2');
  |
  */
 
+
+// function styles() {
+//     return gulp.src('./assets/sass/**/*.scss')
+//         .pipe(sass({ outputStyle: 'expanded' }).on('error', sass.logError))
+//         .pipe(autoprefixer({ remove: false }))
+//         .pipe(gulp.dest('./assets/css'))
+//         .pipe(bsync.stream());
+// }
+
+
+// gulp.task('watch', ['styles']);
+
+
+
 elixir((mix) => {
     mix.sass('app.scss')
        .webpack('app.js');
 });
+
